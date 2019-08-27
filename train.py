@@ -27,16 +27,5 @@ pipeline = Pipeline(stages=[tokenizer, hashingTF, lr])
 # Fit the pipeline to training documents.
 model = pipeline.fit(training)
 
-# Prepare test documents, which are unlabeled (id, text) tuples.
-test = sqlContext.createDataFrame([
-    (4, "spark i j k"),
-    (5, "l m n"),
-    (6, "spark hadoop spark"),
-    (7, "apache hadoop")
-], ["id", "text"])
-
-# Make predictions on test documents and print columns of interest.
-prediction = model.transform(test)
-
 # model.save("./models/test_model")
 model.write().overwrite().save("./models/test_model")
