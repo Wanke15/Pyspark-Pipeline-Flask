@@ -38,21 +38,16 @@ def predict():
     test = sqlContext.createDataFrame([
         (idx, text)
         for idx, text in enumerate(texts)], ["id", "text"])
-    # logger.warning(f"Created dataframe!")
 
     prediction = model.transform(test)
-    # logger.warning("Model transform done!")
 
     selected = prediction.select("text", "prediction")
-    # logger.warning("Select results done!")
 
     start = time.time()
     results = selected.collect()
     logger.info(f"Collect time consumed: {time.time() - start}")
-    # logger.warning("Collect results done!")
 
     response = json.dumps([{"Input": row[0], "Class": row[1]} for row in results])
-    # logger.warning("Parse results done!")
 
     return response
 
