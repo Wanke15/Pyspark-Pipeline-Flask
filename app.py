@@ -4,7 +4,7 @@ import time
 
 from flask import Flask
 from flask import request
-from pyspark.sql import SparkSession
+import pyspark
 
 from spark_util import load
 
@@ -15,14 +15,17 @@ app = Flask(__name__)
 
 
 def init():
-    logger.warning("Initializing app...")
+    logger.info("Initializing app...")
     global sqlContext, model
+    sc = pyspark.SparkContext("local", "MLPipeline predict")
+    sqlContext = pyspark.sql.SQLContext(sc)
     model = load("./models/test_model/")
-    sqlContext = SparkSession.builder \
-        .master("local") \
-        .appName("MLPipeline predict") \
-        .config("spark.some.config.option", "some-value") \
-        .getOrCreate()
+
+    test = sqlContext.createDataFrame([
+        (1, "hello")
+        ], ["id", "text"])
+
+    model.transform(test).collect()
 
 
 @app.route('/spark/predict', methods=['GET'])
@@ -30,11 +33,11 @@ def predict():
     text = request.args.get('input')
     logger.warning(f'Get input: {text}')
 
-    texts = [text for _ in range(1)]
+    texts = [text for _ in range(1000)]
 
     test = sqlContext.createDataFrame([
-        (1, text)
-        for text in texts], ["id", "text"])
+        (idx, text)
+        for idx, text in enumerate(texts)], ["id", "text"])
     # logger.warning(f"Created dataframe!")
 
     prediction = model.transform(test)
@@ -43,9 +46,9 @@ def predict():
     selected = prediction.select("text", "prediction")
     # logger.warning("Select results done!")
 
-    # start = time.time()
+    start = time.time()
     results = selected.collect()
-    # print("Collect time consumed: ", time.time() - start)
+    logger.info(f"Collect time consumed: {time.time() - start}")
     # logger.warning("Collect results done!")
 
     response = json.dumps([{"Input": row[0], "Class": row[1]} for row in results])
