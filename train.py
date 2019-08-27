@@ -38,17 +38,5 @@ test = sqlContext.createDataFrame([
 # Make predictions on test documents and print columns of interest.
 prediction = model.transform(test)
 
-model.save("./models/test_model")
-
-import time
-
-selected = prediction.select("id", "text", "probability", "prediction")
-with open('./models/res.json', 'w') as f:
-    start = time.time()
-    pred_result = selected.collect()
-    print("Collect time consumed: ", time.time() - start)
-    json.dump([{"Input": row[1], "Class": row[3]} for row in pred_result], f)
-print(json.dumps([{"Input": row[1], "Class": row[3]} for row in selected.collect()]))
-# for row in selected.collect():
-#     rid, text, prob, prediction = row
-#     print("(%d, %s) --> prob=%s, prediction=%f" % (rid, text, str(prob), prediction))
+# model.save("./models/test_model")
+model.write().overwrite().save("./models/test_model")
