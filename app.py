@@ -4,7 +4,7 @@ import time
 
 from flask import Flask
 from flask import request
-from pyspark.sql import SparkSession
+import pyspark
 
 from spark_util import load
 
@@ -17,11 +17,8 @@ app = Flask(__name__)
 def init():
     logger.info("Initializing app...")
     global sqlContext, model
-    sqlContext = SparkSession.builder \
-        .master("local") \
-        .appName("MLPipeline predict") \
-        .config("spark.some.config.option", "some-value") \
-        .getOrCreate()
+    sc = pyspark.SparkContext("local", "MLPipeline predict")
+    sqlContext = pyspark.sql.SQLContext(sc)
     model = load("./models/test_model/")
 
     test = sqlContext.createDataFrame([
